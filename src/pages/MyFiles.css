@@ -1,0 +1,274 @@
+.my-files-container {
+  min-height: calc(100vh - 72px);
+  padding: 24px;
+  position: relative;
+}
+
+.my-files-content {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.page-header {
+  background: white;
+  border-radius: 16px;
+  padding: 32px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06), 0 0 0 1px rgba(0, 0, 0, 0.04);
+  margin-bottom: 24px;
+  position: relative;
+  overflow: hidden;
+}
+
+.page-header::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, #667eea, #764ba2);
+  border-radius: 16px 16px 0 0;
+}
+
+.page-header h1 {
+  margin: 0 0 8px 0;
+  color: #1a202c;
+  font-size: 32px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.page-header h1::before {
+  content: '📁';
+  font-size: 36px;
+}
+
+.page-description {
+  margin: 0;
+  color: #4a5568;
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+.upload-zone {
+  background: white;
+  border-radius: 16px;
+  padding: 40px 24px;
+  margin-bottom: 24px;
+  border: 2px dashed #cbd5e0;
+  text-align: center;
+  cursor: pointer;
+  transition: border-color 0.2s, background 0.2s;
+}
+
+.upload-zone:hover {
+  border-color: #667eea;
+  background: #fafbff;
+}
+
+.upload-zone.drag-over {
+  border-color: #667eea;
+  background: #edf2f7;
+}
+
+.upload-zone.uploading {
+  pointer-events: none;
+  opacity: 0.85;
+}
+
+.upload-input {
+  position: absolute;
+  width: 0;
+  height: 0;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.upload-zone-icon {
+  font-size: 48px;
+  margin-bottom: 12px;
+  opacity: 0.9;
+}
+
+.upload-zone-text {
+  margin: 0 0 6px 0;
+  color: #2d3748;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.upload-zone-hint {
+  margin: 0;
+  color: #718096;
+  font-size: 14px;
+}
+
+.upload-zone-error {
+  margin: 12px 0 0 0;
+  color: #c53030;
+  font-size: 14px;
+}
+
+.no-files-card {
+  position: relative;
+  background: white;
+  border-radius: 16px;
+  padding: 56px 32px;
+  text-align: center;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+  border: 2px dashed #e2e8f0;
+}
+
+.no-files-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, #667eea, #764ba2);
+  border-radius: 16px 16px 0 0;
+}
+
+.no-files-icon {
+  font-size: 64px;
+  margin-bottom: 16px;
+  display: block;
+}
+
+.no-files-card h2 {
+  margin: 0 0 8px 0;
+  color: #1a202c;
+  font-size: 22px;
+  font-weight: 700;
+}
+
+.no-files-card p {
+  margin: 0;
+  color: #718096;
+  font-size: 15px;
+}
+
+.files-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.file-card {
+  background: white;
+  border-radius: 12px;
+  padding: 16px 20px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05), 0 0 0 1px rgba(0, 0, 0, 0.04);
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  transition: box-shadow 0.2s;
+}
+
+.file-card:hover {
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(102, 126, 234, 0.15);
+}
+
+.file-icon {
+  font-size: 32px;
+  flex-shrink: 0;
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f7fafc;
+  border-radius: 12px;
+}
+
+.file-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.file-name {
+  font-weight: 600;
+  color: #1a202c;
+  font-size: 15px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.file-meta {
+  font-size: 13px;
+  color: #718096;
+  margin-top: 2px;
+}
+
+.file-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.btn-download {
+  padding: 8px 16px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.btn-download:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+
+.btn-delete {
+  padding: 8px 12px;
+  background: #fed7d7;
+  color: #c53030;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.2s;
+}
+
+.btn-delete:hover {
+  background: #fc8181;
+  transform: scale(1.05);
+}
+
+.loading {
+  text-align: center;
+  padding: 48px 24px;
+  color: #718096;
+  font-size: 16px;
+}
+
+@media (max-width: 768px) {
+  .my-files-container {
+    padding: 16px;
+  }
+
+  .page-header {
+    padding: 24px;
+  }
+
+  .file-card {
+    flex-wrap: wrap;
+  }
+
+  .file-actions {
+    width: 100%;
+    justify-content: flex-end;
+    margin-top: 8px;
+    padding-top: 12px;
+    border-top: 1px solid #e2e8f0;
+  }
+}
