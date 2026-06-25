@@ -1,271 +1,538 @@
+/* =========================================================================
+   Friends page — premium redesign
+   Every selector is scoped under the page root ".friends-container".
+   Uses global design tokens from index.css :root. No !important, no bare
+   element rules, no global selectors. Keyframes are area-prefixed.
+   ========================================================================= */
+
 .friends-container {
-  min-height: calc(100vh - 72px);
-  padding: 24px;
+  min-height: calc(100vh - var(--nav-h));
+  padding: 28px 24px 56px;
   position: relative;
+  background: var(--bg);
 }
 
-.friends-content {
-  max-width: 1200px;
+.friends-container .friends-content {
+  max-width: var(--maxw);
   margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
 }
 
-.search-section {
-  background: white;
-  border-radius: 16px;
+/* -------------------------------------------------------------------------
+   Loading early-return ".friends-container > .loading"
+   ------------------------------------------------------------------------- */
+.friends-container > .loading {
+  max-width: 560px;
+  margin: 64px auto;
+  text-align: center;
+  padding: 56px 28px;
+  color: var(--muted-2);
+  font-size: 16px;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  background: var(--surface);
+  border-radius: var(--r-lg);
+  box-shadow: var(--shadow-md);
+  border: 1px solid var(--line-soft);
+}
+
+.friends-container > .loading::before {
+  content: '';
+  display: block;
+  width: 34px;
+  height: 34px;
+  margin: 0 auto 18px;
+  border-radius: var(--r-full);
+  border: 3px solid var(--brand-tint);
+  border-top-color: var(--brand-1);
+  animation: friends-spin 0.8s linear infinite;
+}
+
+/* =========================================================================
+   Search section
+   ========================================================================= */
+.friends-container .search-section {
+  background: var(--surface);
+  border-radius: var(--r-lg);
   padding: 32px;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06), 0 0 0 1px rgba(0, 0, 0, 0.04);
-  margin-bottom: 32px;
+  box-shadow: var(--shadow-md);
+  border: 1px solid var(--line-soft);
+  margin: 0;
   position: relative;
   overflow: hidden;
+  transition: box-shadow var(--t), transform var(--t);
 }
 
-.search-section::before {
+.friends-container .search-section::before {
   content: '';
   position: absolute;
   top: 0;
   left: 0;
   right: 0;
   height: 4px;
-  background: linear-gradient(90deg, #667eea, #764ba2);
-  border-radius: 16px 16px 0 0;
+  background: var(--brand-gradient-90);
 }
 
-.search-section h1 {
+.friends-container .search-section:focus-within {
+  box-shadow: var(--shadow-lg);
+  transform: translateY(-2px);
+}
+
+.friends-container .search-section h1 {
   margin: 0 0 20px 0;
-  color: #1a202c;
-  font-size: 28px;
-  font-weight: 700;
+  color: var(--ink);
+  font-size: clamp(22px, 4vw, 28px);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
   display: flex;
   align-items: center;
   gap: 12px;
 }
 
-.search-section h1::before {
+.friends-container .search-section h1::before {
   content: '👥';
-  font-size: 32px;
+  font-size: 30px;
+  line-height: 1;
+  filter: drop-shadow(0 2px 4px rgba(102, 126, 234, 0.25));
 }
 
-.search-input {
+.friends-container .search-input {
   width: 100%;
-  padding: 14px 20px 14px 48px;
-  border: 2px solid #e2e8f0;
-  border-radius: 12px;
+  box-sizing: border-box;
+  padding: 14px 18px 14px 50px;
+  border: 1.5px solid var(--line);
+  border-radius: var(--r-md);
   font-size: 16px;
-  transition: border-color 0.2s;
-  background: #fafbfc url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='%23718096' stroke-width='2'%3E%3Ccircle cx='11' cy='11' r='8'/%3E%3Cpath d='m21 21-4.35-4.35'/%3E%3C/svg%3E") no-repeat 18px center;
+  font-family: var(--font-sans);
+  color: var(--ink-2);
+  background: var(--surface-2)
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='%23718096' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='11' cy='11' r='8'/%3E%3Cpath d='m21 21-4.35-4.35'/%3E%3C/svg%3E")
+    no-repeat 18px center;
+  transition: border-color var(--t), box-shadow var(--t), background-color var(--t);
 }
 
-.search-input:focus {
+.friends-container .search-input::placeholder {
+  color: var(--faint);
+}
+
+.friends-container .search-input:focus {
   outline: none;
-  border-color: #667eea;
-  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+  background-color: var(--surface);
+  border-color: var(--brand-1);
+  box-shadow: var(--focus-ring);
 }
 
-.friends-section {
-  background: white;
-  border-radius: 16px;
+/* =========================================================================
+   Section cards
+   ========================================================================= */
+.friends-container .friends-section {
+  background: var(--surface);
+  border-radius: var(--r-lg);
   padding: 32px;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06), 0 0 0 1px rgba(0, 0, 0, 0.04);
-  margin-bottom: 24px;
+  box-shadow: var(--shadow-md);
+  border: 1px solid var(--line-soft);
+  margin: 0;
 }
 
-.friends-section h2 {
+.friends-container .friends-section h2 {
   margin: 0 0 24px 0;
-  color: #1a202c;
-  font-size: 22px;
+  color: var(--ink);
+  font-size: 21px;
   font-weight: 700;
+  letter-spacing: -0.015em;
   padding-bottom: 12px;
-  border-bottom: 2px solid #edf2f7;
+  border-bottom: 2px solid var(--line-soft);
   position: relative;
+  font-variant-numeric: tabular-nums;
 }
 
-.friends-section h2::after {
+.friends-container .friends-section h2::after {
   content: '';
   position: absolute;
   bottom: -2px;
   left: 0;
-  width: 60px;
+  width: 64px;
   height: 2px;
-  background: linear-gradient(90deg, #667eea, #764ba2);
-  border-radius: 2px;
+  background: var(--brand-gradient-90);
+  border-radius: var(--r-full);
 }
 
-.users-grid {
+/* =========================================================================
+   Users grid — responsive, capped card width
+   ========================================================================= */
+.friends-container .users-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
   gap: 20px;
 }
 
-.user-card {
-  background: #f7fafc;
-  border-radius: 12px;
-  padding: 20px;
+/* =========================================================================
+   User card
+   ========================================================================= */
+.friends-container .user-card {
+  background: var(--surface);
+  border-radius: var(--r-md);
+  padding: 24px 20px 20px;
   display: flex;
   flex-direction: column;
-  gap: 16px;
-  transition: all 0.2s;
-  border: 2px solid transparent;
-}
-
-.user-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-}
-
-.user-card.pending {
-  border-color: #fbd38d;
-  background: #fffaf0;
-}
-
-.user-card.friend {
-  border-color: #9ae6b4;
-  background: #f0fff4;
-}
-
-.user-avatar {
-  width: 80px;
-  height: 80px;
-  border-radius: 50%;
+  gap: 14px;
+  position: relative;
   overflow: hidden;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  margin: 0 auto;
+  border: 1px solid var(--line);
+  box-shadow: var(--shadow-sm);
+  transition: transform var(--t), box-shadow var(--t), border-color var(--t);
 }
 
-.user-avatar img {
+/* Per-variant accent stripe (top): brand = discover */
+.friends-container .user-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: var(--brand-gradient-90);
+  opacity: 0.9;
+}
+
+.friends-container .user-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
+  border-color: var(--brand-tint);
+}
+
+/* Pending variant = warning accent */
+.friends-container .user-card.pending {
+  background: var(--surface);
+  border-color: var(--warning-line);
+}
+
+.friends-container .user-card.pending::before {
+  background: linear-gradient(90deg, var(--warning), #ed8936);
+}
+
+/* Friend variant = success accent */
+.friends-container .user-card.friend {
+  background: var(--surface);
+  border-color: var(--success-line);
+}
+
+.friends-container .user-card.friend::before {
+  background: linear-gradient(90deg, var(--success), var(--success-d));
+}
+
+/* =========================================================================
+   Avatar — ring + brand halo
+   ========================================================================= */
+.friends-container .user-avatar {
+  width: 84px;
+  height: 84px;
+  border-radius: var(--r-full);
+  overflow: hidden;
+  background: var(--brand-gradient);
+  margin: 0 auto;
+  flex-shrink: 0;
+  box-shadow: 0 0 0 3px var(--surface), 0 6px 16px rgba(102, 126, 234, 0.32);
+}
+
+.friends-container .user-card.pending .user-avatar {
+  box-shadow: 0 0 0 3px var(--surface), 0 6px 16px rgba(237, 137, 54, 0.3);
+}
+
+.friends-container .user-card.friend .user-avatar {
+  box-shadow: 0 0 0 3px var(--surface), 0 6px 16px rgba(56, 161, 105, 0.3);
+}
+
+.friends-container .user-avatar img {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  display: block;
 }
 
-.avatar-placeholder {
+.friends-container .avatar-placeholder {
   width: 100%;
   height: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: white;
+  color: #fff;
   font-weight: 700;
-  font-size: 32px;
+  font-size: 34px;
+  line-height: 1;
+  text-transform: uppercase;
+  user-select: none;
 }
 
-.user-info {
+/* =========================================================================
+   User info — data-robust text
+   ========================================================================= */
+.friends-container .user-info {
   text-align: center;
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 3px;
+  min-width: 0;
 }
 
-.user-name {
+.friends-container .user-name {
   font-weight: 700;
-  color: #1a202c;
-  font-size: 18px;
+  color: var(--ink);
+  font-size: 17px;
+  letter-spacing: -0.01em;
+  line-height: 1.3;
+  overflow-wrap: anywhere;
+  /* clamp to two lines so card heights stay even */
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
-.user-username {
-  color: #718096;
-  font-size: 14px;
+.friends-container .user-username {
+  color: var(--muted-2);
+  font-size: 13.5px;
+  font-weight: 500;
+  overflow-wrap: anywhere;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-.user-bio {
-  color: #4a5568;
-  font-size: 14px;
+.friends-container .user-bio {
+  color: var(--muted);
+  font-size: 13.5px;
   margin-top: 8px;
   line-height: 1.5;
+  overflow-wrap: anywhere;
+  /* clamp to 3 lines so cards align */
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
-.user-actions {
+/* =========================================================================
+   Actions
+   ========================================================================= */
+.friends-container .user-actions {
   display: flex;
   flex-direction: column;
   gap: 8px;
+  margin-top: auto;
 }
 
-.user-actions button {
-  padding: 10px 16px;
-  border: none;
-  border-radius: 8px;
+.friends-container .user-actions button {
+  padding: 11px 16px;
+  border: 1px solid transparent;
+  border-radius: var(--r-full);
   font-weight: 600;
   font-size: 14px;
+  font-family: var(--font-sans);
+  line-height: 1.2;
   cursor: pointer;
-  transition: all 0.2s;
+  position: relative;
+  overflow: hidden;
+  transition: transform var(--t), box-shadow var(--t), background-color var(--t),
+    color var(--t), border-color var(--t);
+  /* stacked accept/reject keep equal height */
+  min-height: 42px;
 }
 
-.btn-add {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
+/* Sheen for gradient (filled) buttons */
+.friends-container .btn-add::after,
+.friends-container .btn-accept::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.22),
+    rgba(255, 255, 255, 0)
+  );
+  pointer-events: none;
 }
 
-.btn-add:hover {
+/* --- Add (discover, primary brand) --- */
+.friends-container .btn-add {
+  background: var(--brand-gradient);
+  color: #fff;
+}
+
+.friends-container .btn-add:hover {
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+  box-shadow: var(--shadow-brand);
 }
 
-.btn-pending {
-  background: #e2e8f0;
-  color: #718096;
+.friends-container .btn-add:active {
+  transform: translateY(0);
+}
+
+/* --- Pending (disabled state, JSX renders disabled) --- */
+.friends-container .btn-pending {
+  background: var(--surface-2);
+  color: var(--muted-2);
+  border-color: var(--line);
   cursor: not-allowed;
 }
 
-.btn-accept {
-  background: #48bb78;
-  color: white;
+.friends-container .btn-pending::before {
+  content: '🕓';
+  margin-right: 6px;
+  font-size: 13px;
 }
 
-.btn-accept:hover {
-  background: #38a169;
+/* --- Accept (success, filled gradient) --- */
+.friends-container .btn-accept {
+  background: linear-gradient(135deg, var(--success) 0%, var(--success-d) 100%);
+  color: #fff;
+}
+
+.friends-container .btn-accept:hover {
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(72, 187, 120, 0.4);
+  box-shadow: var(--shadow-success);
 }
 
-.btn-reject,
-.btn-remove {
-  background: #fc8181;
-  color: white;
+.friends-container .btn-accept:active {
+  transform: translateY(0);
 }
 
-.btn-reject:hover,
-.btn-remove:hover {
-  background: #f56565;
+/* --- Reject / Remove (ghost destructive: soft at rest, fills on hover) --- */
+.friends-container .btn-reject,
+.friends-container .btn-remove {
+  background: var(--danger-bg);
+  color: var(--danger-d);
+  border-color: var(--danger-line);
+}
+
+.friends-container .btn-reject:hover,
+.friends-container .btn-remove:hover {
+  background: var(--danger);
+  color: #fff;
+  border-color: transparent;
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(245, 101, 101, 0.4);
+  box-shadow: var(--shadow-danger);
 }
 
-.loading {
+.friends-container .btn-reject:active,
+.friends-container .btn-remove:active {
+  transform: translateY(0);
+}
+
+/* =========================================================================
+   Empty state
+   ========================================================================= */
+.friends-container .no-users {
   text-align: center;
   padding: 48px 24px;
-  color: #718096;
-  font-size: 16px;
+  color: var(--muted);
+  font-size: 15px;
+  font-weight: 500;
+  background: var(--surface-2);
+  border-radius: var(--r-md);
+  border: 1.5px dashed var(--line);
 }
 
-.no-users {
-  text-align: center;
-  padding: 48px 24px;
-  color: #4a5568;
-  font-size: 16px;
-  background: #f7fafc;
-  border-radius: 12px;
-  border: 2px dashed #e2e8f0;
-  margin: 0 8px;
-}
-
-.no-users::before {
+.friends-container .no-users::before {
   content: '🔍';
   display: block;
   font-size: 40px;
   margin-bottom: 12px;
-  opacity: 0.8;
+  opacity: 0.85;
+}
+
+/* =========================================================================
+   Staggered entrance — reduced-motion safe
+   ========================================================================= */
+@media (prefers-reduced-motion: no-preference) {
+  .friends-container .friends-section {
+    animation: friends-section-in 0.45s ease both;
+  }
+
+  .friends-container .user-card {
+    animation: friends-card-in 0.4s ease both;
+  }
+
+  .friends-container .users-grid .user-card:nth-child(1) { animation-delay: 0.02s; }
+  .friends-container .users-grid .user-card:nth-child(2) { animation-delay: 0.06s; }
+  .friends-container .users-grid .user-card:nth-child(3) { animation-delay: 0.1s; }
+  .friends-container .users-grid .user-card:nth-child(4) { animation-delay: 0.14s; }
+  .friends-container .users-grid .user-card:nth-child(5) { animation-delay: 0.18s; }
+  .friends-container .users-grid .user-card:nth-child(6) { animation-delay: 0.22s; }
+  .friends-container .users-grid .user-card:nth-child(n + 7) { animation-delay: 0.26s; }
+}
+
+@keyframes friends-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes friends-section-in {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes friends-card-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.985);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* =========================================================================
+   Responsive
+   ========================================================================= */
+
+/* Tablet: cap to a clean 2-up so cards never get over-wide */
+@media (max-width: 900px) {
+  .friends-container .users-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 
 @media (max-width: 768px) {
   .friends-container {
-    padding: 16px;
+    padding: 18px 16px 40px;
   }
 
-  .search-section,
-  .friends-section {
-    padding: 20px;
+  .friends-container .search-section,
+  .friends-container .friends-section {
+    padding: 22px;
   }
+}
 
-  .users-grid {
+/* Mobile: single column */
+@media (max-width: 560px) {
+  .friends-container .users-grid {
     grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 480px) {
+  .friends-container .search-section {
+    padding: 20px 18px;
+  }
+
+  .friends-container .friends-section {
+    padding: 20px 18px;
+  }
+
+  /* keep 16px font on inputs to avoid iOS zoom (already 16px; re-assert) */
+  .friends-container .search-input {
+    font-size: 16px;
   }
 }

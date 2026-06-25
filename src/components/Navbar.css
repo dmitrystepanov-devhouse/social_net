@@ -1,152 +1,362 @@
+/* ============================================================
+   Navbar — premium top navigation
+   Every selector scoped under .navbar. Tokens from index.css.
+   No !important, no bare-element / global rules.
+   ============================================================ */
+
 .navbar {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1), 0 1px 0 rgba(255, 255, 255, 0.1) inset;
   position: sticky;
   top: 0;
   z-index: 100;
+  background: var(--brand-gradient);
+  /* depth + a hairline sheen along the top edge */
+  box-shadow:
+    var(--shadow-md),
+    inset 0 1px 0 rgba(255, 255, 255, 0.18);
+  isolation: isolate;
 }
 
+/* soft top sheen overlay for gradient depth (no DOM change) */
+.navbar::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(120% 140% at 12% -40%, rgba(255, 255, 255, 0.22), transparent 60%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.08), transparent 42%);
+  z-index: -1;
+}
+
+/* crisp luminous hairline at the bottom edge */
 .navbar::after {
   content: '';
   position: absolute;
-  bottom: 0;
   left: 0;
   right: 0;
-  height: 2px;
-  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+  bottom: 0;
+  height: 1px;
   pointer-events: none;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.45),
+    rgba(255, 255, 255, 0.18),
+    transparent
+  );
 }
 
-.navbar-container {
-  max-width: 1200px;
+.navbar .navbar-container {
+  max-width: var(--maxw);
+  min-height: var(--nav-h);
   margin: 0 auto;
-  padding: 16px 24px;
+  padding: 0 24px;
   display: flex;
   align-items: center;
-  gap: 32px;
+  gap: 28px;
 }
 
-.navbar-logo {
+/* ---------------------------- Logo ---------------------------- */
+.navbar .navbar-logo {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 9px;
+  flex-shrink: 0;
   text-decoration: none;
-  color: white;
-  font-size: 20px;
+  color: #fff;
+  font-size: 19px;
   font-weight: 700;
+  letter-spacing: -0.01em;
   white-space: nowrap;
+  border-radius: var(--r-md);
+  transition: opacity var(--t);
+  -webkit-tap-highlight-color: transparent;
 }
 
-.logo-icon {
+.navbar .navbar-logo:hover {
+  opacity: 0.92;
+}
+
+.navbar .navbar-logo:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.55);
+}
+
+.navbar .logo-icon {
   font-size: 24px;
+  line-height: 1;
+  display: inline-flex;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.22));
+  transition: transform var(--t);
 }
 
-.navbar-links {
-  display: flex;
-  gap: 8px;
-  flex: 1;
+.navbar .navbar-logo:hover .logo-icon {
+  transform: rotate(-8deg) scale(1.08);
 }
 
-.nav-link {
+/* --------------------------- Links --------------------------- */
+.navbar .navbar-links {
   display: flex;
   align-items: center;
   gap: 6px;
-  padding: 8px 16px;
-  border-radius: 8px;
+  flex: 1;
+  min-width: 0;
+}
+
+.navbar .nav-link {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 9px 15px;
+  border-radius: var(--r-full);
   text-decoration: none;
-  color: rgba(255, 255, 255, 0.9);
+  color: rgba(255, 255, 255, 0.86);
   font-weight: 500;
   font-size: 15px;
-  transition: all 0.2s;
+  line-height: 1.2;
   white-space: nowrap;
+  transition:
+    color var(--t),
+    background-color var(--t),
+    transform var(--t),
+    box-shadow var(--t);
+  -webkit-tap-highlight-color: transparent;
 }
 
-.nav-link:hover {
-  background: rgba(255, 255, 255, 0.15);
-  color: white;
-}
-
-.nav-link.active {
-  background: rgba(255, 255, 255, 0.25);
-  color: white;
-}
-
-.nav-icon {
-  font-size: 18px;
-}
-
-.navbar-user {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.navbar-user .user-name {
-  color: white;
-  font-weight: 600;
-  font-size: 14px;
-}
-
-.logout-button {
-  background: rgba(255, 255, 255, 0.2);
-  color: white;
-  border: none;
-  padding: 8px 16px;
-  border-radius: 8px;
-  font-weight: 600;
-  font-size: 14px;
-  cursor: pointer;
-  transition: all 0.2s;
-  white-space: nowrap;
-}
-
-.logout-button:hover {
-  background: rgba(255, 255, 255, 0.3);
+.navbar .nav-link:hover {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.14);
   transform: translateY(-1px);
 }
 
+.navbar .nav-link:active {
+  transform: translateY(0);
+}
+
+.navbar .nav-link:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.5);
+}
+
+/* Active link = frosted pill */
+.navbar .nav-link.active {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.22);
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.28),
+    0 4px 12px rgba(0, 0, 0, 0.12);
+}
+
+/* Sliding indicator accent under the active pill (::after, no DOM change) */
+.navbar .nav-link.active::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  bottom: 3px;
+  width: 22px;
+  height: 3px;
+  transform: translateX(-50%);
+  border-radius: var(--r-full);
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow: 0 0 8px rgba(255, 255, 255, 0.5);
+}
+
+.navbar .nav-icon {
+  font-size: 18px;
+  line-height: 1;
+  display: inline-flex;
+}
+
+/* --------------------------- User --------------------------- */
+.navbar .navbar-user {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-shrink: 0;
+  min-width: 0;
+}
+
+.navbar .navbar-user .user-name {
+  max-width: 160px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: #fff;
+  font-weight: 600;
+  font-size: 14px;
+  letter-spacing: -0.005em;
+}
+
+.navbar .logout-button {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 38px;
+  padding: 8px 18px;
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.45);
+  border-radius: var(--r-full);
+  font-family: var(--font-sans);
+  font-weight: 600;
+  font-size: 14px;
+  white-space: nowrap;
+  cursor: pointer;
+  transition:
+    background-color var(--t),
+    border-color var(--t),
+    transform var(--t),
+    box-shadow var(--t);
+  -webkit-tap-highlight-color: transparent;
+}
+
+.navbar .logout-button:hover {
+  background: rgba(255, 255, 255, 0.95);
+  border-color: rgba(255, 255, 255, 0.95);
+  color: var(--brand-2);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.18);
+}
+
+.navbar .logout-button:active {
+  transform: translateY(0);
+  box-shadow: none;
+}
+
+.navbar .logout-button:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.55);
+}
+
+/* ============================================================
+   Tablet / Mobile (<= 768px)
+   Two-row top bar: logo + logout stay on top (logout ALWAYS
+   reachable, >= 44px), nav-links become a scrollable pill strip.
+   ============================================================ */
 @media (max-width: 768px) {
-  .navbar-container {
+  .navbar .navbar-container {
+    min-height: auto;
     flex-wrap: wrap;
-    gap: 16px;
-    padding: 16px 8px;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 14px;
   }
-  .nav-link {
-    padding: 0 !important;
+
+  /* keep logo visible on the top row */
+  .navbar .navbar-logo {
+    order: 1;
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-size: 17px;
   }
-  .navbar-links {
+
+  /* logout stays on the top row, opposite the logo — never hidden */
+  .navbar .navbar-user {
+    order: 2;
+    flex: 0 0 auto;
+    gap: 10px;
+    margin-left: auto;
+  }
+
+  .navbar .navbar-user .user-name {
+    max-width: 92px;
+    font-size: 13px;
+  }
+
+  .navbar .logout-button {
+    min-height: 40px;
+    padding: 8px 16px;
+  }
+
+  /* links drop to a full-width scrollable row below */
+  .navbar .navbar-links {
     order: 3;
     width: 100%;
-    justify-content: space-around;
+    flex: 1 1 100%;
+    gap: 6px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    /* fade hint that the row scrolls */
+    -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 14px, #000 calc(100% - 14px), transparent 100%);
+    mask-image: linear-gradient(90deg, transparent 0, #000 14px, #000 calc(100% - 14px), transparent 100%);
+    padding-bottom: 2px;
   }
 
-  .nav-link {
-    flex-direction: column;
+  .navbar .navbar-links::-webkit-scrollbar {
+    display: none;
+  }
+
+  .navbar .nav-link {
+    flex: 0 0 auto;
+    min-height: 44px;
     padding: 6px 12px;
-    font-size: 12px;
+    flex-direction: column;
     gap: 2px;
+    font-size: 11px;
+    border-radius: var(--r-md);
   }
 
-  .nav-icon {
-    font-size: 20px;
+  .navbar .nav-icon {
+    font-size: 21px;
   }
 
-  .navbar-user .user-name {
+  /* relocate the active indicator for the stacked (icon-over-label) layout */
+  .navbar .nav-link.active::after {
+    bottom: 2px;
+    width: 16px;
+    height: 2.5px;
+  }
+}
+
+/* Small phones (<= 480px) — tighter, hide username to keep logout roomy */
+@media (max-width: 480px) {
+  .navbar .navbar-container {
+    padding: 9px 12px;
+    gap: 8px;
+  }
+
+  .navbar .navbar-logo {
+    font-size: 16px;
+    gap: 7px;
+  }
+
+  .navbar .navbar-user .user-name {
     display: none;
   }
-  .navbar-logo {
-    display: none;
+
+  .navbar .logout-button {
+    min-height: 44px;
+    padding: 8px 18px;
   }
-  .navbar-user {
-    display: none;
+
+  .navbar .nav-link {
+    min-width: 60px;
+    padding: 6px 10px;
   }
+}
+
+/* ============================================================
+   Motion: gate transform-based entrance behind reduced-motion.
+   ============================================================ */
+@media (prefers-reduced-motion: no-preference) {
   .navbar {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    width: 100%;
-    z-index: 100;
-    top: auto;
+    animation: navbar-slide-in var(--t-slow) both;
+  }
+}
+
+@keyframes navbar-slide-in {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }

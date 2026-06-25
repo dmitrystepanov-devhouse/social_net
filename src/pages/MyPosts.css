@@ -1,351 +1,578 @@
+/* ==========================================================================
+   My Posts page — scoped under .my-posts-container
+   Every selector is prefixed with the page root so the generic class names
+   (.page-header, .post-header, .post-content, .stat-*, .save-btn, .loading…)
+   cannot leak into or collide with Feed / Profile / MyFiles, which share the
+   same global stylesheet. Colors/radii/shadows/motion come from the design
+   tokens in src/index.css :root.
+   ========================================================================== */
+
 .my-posts-container {
-  min-height: calc(100vh - 72px);
+  min-height: calc(100vh - var(--nav-h));
   padding: 24px;
   position: relative;
+  font-family: var(--font-sans);
 }
 
-.my-posts-content {
+.my-posts-container .my-posts-content {
   max-width: 900px;
   margin: 0 auto;
 }
 
-.page-header {
-  background: white;
-  border-radius: 16px;
+/* --------------------------------------------------------------------------
+   Loading (covers both the early-return ".my-posts-container > .loading"
+   and any in-content loading state)
+   -------------------------------------------------------------------------- */
+.my-posts-container .loading {
+  text-align: center;
+  padding: 64px 24px;
+  color: var(--muted-2);
+  font-size: 16px;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+}
+
+/* --------------------------------------------------------------------------
+   Header card + stat tiles
+   -------------------------------------------------------------------------- */
+.my-posts-container .page-header {
+  background: var(--surface);
+  border-radius: var(--r-lg);
   padding: 32px;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06), 0 0 0 1px rgba(0, 0, 0, 0.04);
+  box-shadow: var(--shadow-md), var(--ring);
   margin-bottom: 24px;
   position: relative;
   overflow: hidden;
 }
 
-.page-header::before {
+.my-posts-container .page-header::before {
   content: '';
   position: absolute;
   top: 0;
   left: 0;
   right: 0;
   height: 4px;
-  background: linear-gradient(90deg, #667eea, #764ba2);
-  border-radius: 16px 16px 0 0;
+  background: var(--brand-gradient-90);
+  border-radius: var(--r-lg) var(--r-lg) 0 0;
 }
 
-.page-header h1 {
+.my-posts-container .page-header h1 {
   margin: 0 0 24px 0;
-  color: #1a202c;
+  color: var(--ink);
   font-size: 32px;
   font-weight: 700;
+  letter-spacing: -0.02em;
   display: flex;
   align-items: center;
   gap: 12px;
 }
 
-.page-header h1::before {
+/* Page-specific emoji — scoping keeps the MyFiles 📁 from stamping here. */
+.my-posts-container .page-header h1::before {
   content: '📝';
   font-size: 36px;
+  line-height: 1;
 }
 
-.stats {
+.my-posts-container .stats {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-  gap: 24px;
+  gap: 16px;
 }
 
-.stat-item {
+.my-posts-container .stat-item {
+  position: relative;
+  overflow: hidden;
   text-align: center;
-  padding: 16px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  border-radius: 12px;
+  padding: 20px 16px;
+  background: var(--brand-gradient);
+  border-radius: var(--r-md);
+  box-shadow: var(--shadow-brand);
+  /* inset highlight for a glassy, lifted tile */
+  box-shadow: var(--shadow-brand), inset 0 1px 0 rgba(255, 255, 255, 0.22);
 }
 
-.stat-number {
+/* Subtle oversized watermark numeral feel — decorative glow in the corner. */
+.my-posts-container .stat-item::before {
+  content: '';
+  position: absolute;
+  top: -40%;
+  right: -30%;
+  width: 120px;
+  height: 120px;
+  background: radial-gradient(
+    circle,
+    rgba(255, 255, 255, 0.28) 0%,
+    rgba(255, 255, 255, 0) 70%
+  );
+  pointer-events: none;
+}
+
+.my-posts-container .stat-number {
+  position: relative;
   font-size: 36px;
   font-weight: 700;
-  color: white;
+  color: #fff;
   margin-bottom: 4px;
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
 }
 
-.stat-label {
-  font-size: 14px;
-  color: rgba(255, 255, 255, 0.9);
-  font-weight: 600;
-}
-
-.no-posts-card {
-  background: white;
-  border-radius: 16px;
-  padding: 64px 32px;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06), 0 0 0 1px rgba(0, 0, 0, 0.04);
-  text-align: center;
-  border: 2px dashed #e2e8f0;
+.my-posts-container .stat-label {
   position: relative;
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.92);
+  font-weight: 600;
+  letter-spacing: 0.01em;
 }
 
-.no-posts-card::before {
+/* --------------------------------------------------------------------------
+   Empty state
+   -------------------------------------------------------------------------- */
+.my-posts-container .no-posts-card {
+  background: var(--surface);
+  border-radius: var(--r-lg);
+  padding: 64px 32px;
+  box-shadow: var(--shadow-md);
+  text-align: center;
+  border: 2px dashed var(--line);
+  position: relative;
+  overflow: hidden;
+}
+
+.my-posts-container .no-posts-card::before {
   content: '';
   position: absolute;
   top: 0;
   left: 0;
   right: 0;
   height: 4px;
-  background: linear-gradient(90deg, #667eea, #764ba2);
-  border-radius: 16px 16px 0 0;
+  background: var(--brand-gradient-90);
+  border-radius: var(--r-lg) var(--r-lg) 0 0;
 }
 
-.no-posts-icon {
+.my-posts-container .no-posts-icon {
   font-size: 72px;
   margin-bottom: 20px;
   display: inline-block;
   filter: grayscale(0.1);
 }
 
-.no-posts-card h2 {
+.my-posts-container .no-posts-card h2 {
   margin: 0 0 12px 0;
-  color: #1a202c;
+  color: var(--ink);
   font-size: 24px;
   font-weight: 700;
+  letter-spacing: -0.01em;
 }
 
-.no-posts-card p {
+.my-posts-container .no-posts-card p {
   margin: 0;
-  color: #718096;
+  color: var(--muted-2);
   font-size: 16px;
   line-height: 1.5;
 }
 
-.posts-list {
+/* --------------------------------------------------------------------------
+   Posts list + post cards
+   -------------------------------------------------------------------------- */
+.my-posts-container .posts-list {
   display: flex;
   flex-direction: column;
   gap: 16px;
 }
 
-.my-post-card {
-  background: white;
-  border-radius: 16px;
+.my-posts-container .my-post-card {
+  background: var(--surface);
+  border-radius: var(--r-lg);
   padding: 24px;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06), 0 0 0 1px rgba(0, 0, 0, 0.04);
-  transition: box-shadow 0.2s;
+  box-shadow: var(--shadow-md), var(--ring);
+  transition: transform var(--t), box-shadow var(--t);
   position: relative;
   overflow: hidden;
 }
 
-.my-post-card::before {
+.my-posts-container .my-post-card::before {
   content: '';
   position: absolute;
   left: 0;
   top: 0;
   bottom: 0;
   width: 4px;
-  background: linear-gradient(180deg, #667eea, #764ba2);
-  border-radius: 16px 0 0 16px;
+  background: var(--brand-gradient-180);
+  border-radius: var(--r-lg) 0 0 var(--r-lg);
 }
 
-.my-post-card:hover {
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(102, 126, 234, 0.1);
+.my-posts-container .my-post-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg), var(--ring-brand);
 }
 
-.post-header {
+.my-posts-container .post-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 12px;
   margin-bottom: 16px;
   padding-bottom: 12px;
-  border-bottom: 1px solid #e2e8f0;
+  border-bottom: 1px solid var(--line-soft);
 }
 
-.post-date {
-  color: #718096;
+.my-posts-container .post-date {
+  color: var(--muted-2);
   font-size: 14px;
   font-weight: 500;
+  letter-spacing: -0.01em;
 }
 
-.edited-badge {
-  color: #a0aec0;
+.my-posts-container .edited-badge {
+  color: var(--faint);
   font-style: italic;
 }
 
-.post-actions {
+.my-posts-container .post-actions {
   display: flex;
+  flex-wrap: wrap;
   gap: 8px;
 }
 
-.edit-btn,
-.delete-btn {
+/* --- Action buttons (edit / delete) -------------------------------------- */
+.my-posts-container .edit-btn,
+.my-posts-container .delete-btn {
   padding: 6px 12px;
-  border: none;
-  border-radius: 6px;
+  border: 1px solid transparent;
+  border-radius: var(--r-xs);
   font-size: 13px;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.2s;
+  white-space: nowrap;
+  transition: background var(--t), color var(--t), border-color var(--t),
+    transform var(--t), box-shadow var(--t);
 }
 
-.edit-btn {
-  background: #bee3f8;
-  color: #2c5282;
+.my-posts-container .edit-btn {
+  background: var(--brand-tint);
+  color: var(--brand-2);
+  border-color: var(--brand-tint-soft);
 }
 
-.edit-btn:hover {
-  background: #90cdf4;
+.my-posts-container .edit-btn:hover {
+  background: var(--brand-gradient);
+  color: #fff;
+  border-color: transparent;
   transform: translateY(-1px);
+  box-shadow: var(--shadow-brand);
 }
 
-.delete-btn {
-  background: #fed7d7;
-  color: #c53030;
+.my-posts-container .edit-btn:active {
+  transform: translateY(0);
 }
 
-.delete-btn:hover {
-  background: #fc8181;
+/* Destructive: soft at rest, fills to solid danger on hover. */
+.my-posts-container .delete-btn {
+  background: transparent;
+  color: var(--danger-d);
+  border-color: var(--danger-line);
+}
+
+.my-posts-container .delete-btn:hover {
+  background: var(--danger);
+  color: #fff;
+  border-color: transparent;
   transform: translateY(-1px);
+  box-shadow: var(--shadow-danger);
 }
 
-.post-body {
+.my-posts-container .delete-btn:active {
+  transform: translateY(0);
+}
+
+/* --------------------------------------------------------------------------
+   Post body + content
+   -------------------------------------------------------------------------- */
+.my-posts-container .post-body {
   margin-bottom: 16px;
 }
 
-.post-content {
-  color: #2d3748;
+.my-posts-container .post-content {
+  color: var(--ink-2);
   font-size: 16px;
   line-height: 1.6;
   white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  /* keep the card looking intentional even when content is empty/short */
+  min-height: 1.6em;
 }
 
-.edit-form {
+/* --- Inline edit form ----------------------------------------------------- */
+.my-posts-container .edit-form {
   display: flex;
   flex-direction: column;
   gap: 12px;
 }
 
-.edit-form textarea {
+.my-posts-container .edit-form textarea {
   width: 100%;
   padding: 12px 16px;
-  border: 2px solid #e2e8f0;
-  border-radius: 8px;
+  background: var(--surface);
+  border: 1.5px solid var(--line);
+  border-radius: var(--r-sm);
   font-size: 15px;
   font-family: inherit;
+  line-height: 1.6;
+  color: var(--ink-2);
   resize: vertical;
+  transition: border-color var(--t), box-shadow var(--t);
 }
 
-.edit-form textarea:focus {
+.my-posts-container .edit-form textarea::placeholder {
+  color: var(--faint);
+}
+
+.my-posts-container .edit-form textarea:focus {
   outline: none;
-  border-color: #667eea;
+  border-color: var(--brand-1);
+  box-shadow: var(--focus-ring);
 }
 
-.edit-actions {
+.my-posts-container .edit-actions {
   display: flex;
+  flex-wrap: wrap;
   gap: 8px;
 }
 
-.save-btn,
-.cancel-btn {
+.my-posts-container .save-btn,
+.my-posts-container .cancel-btn {
   padding: 10px 20px;
-  border: none;
-  border-radius: 8px;
+  border: 1px solid transparent;
+  border-radius: var(--r-sm);
+  font-size: 14px;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: background var(--t), color var(--t), border-color var(--t),
+    transform var(--t), box-shadow var(--t);
 }
 
-.save-btn {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
+.my-posts-container .save-btn {
+  background: var(--brand-gradient);
+  color: #fff;
 }
 
-.save-btn:hover {
+.my-posts-container .save-btn:hover {
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+  box-shadow: var(--shadow-brand);
 }
 
-.cancel-btn {
-  background: #e2e8f0;
-  color: #2d3748;
+.my-posts-container .save-btn:active {
+  transform: translateY(0);
 }
 
-.cancel-btn:hover {
-  background: #cbd5e0;
+/* Clear ghost cancel button. */
+.my-posts-container .cancel-btn {
+  background: var(--surface-2);
+  color: var(--ink-2);
+  border-color: var(--line);
 }
 
-.post-footer {
+.my-posts-container .cancel-btn:hover {
+  background: var(--line-soft);
+  border-color: var(--brand-1);
+}
+
+.my-posts-container .cancel-btn:active {
+  transform: translateY(0);
+}
+
+/* --------------------------------------------------------------------------
+   Footer stat chips
+   -------------------------------------------------------------------------- */
+.my-posts-container .post-footer {
   display: flex;
-  gap: 24px;
-  padding-top: 12px;
-  border-top: 1px solid #e2e8f0;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding-top: 16px;
+  border-top: 1px solid var(--line-soft);
 }
 
-.post-stat {
-  color: #4a5568;
-  font-size: 14px;
+.my-posts-container .post-stat {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  border-radius: var(--r-full);
+  color: var(--muted);
+  background: var(--surface-2);
+  border: 1px solid var(--line-soft);
+  font-size: 13px;
   font-weight: 600;
+  font-variant-numeric: tabular-nums;
 }
 
-.comments-preview {
+/* ❤️ likes → soft red tint; 💬 comments → soft brand tint. */
+.my-posts-container .post-stat:first-child {
+  color: var(--danger-d);
+  background: var(--danger-bg);
+  border-color: var(--danger-line);
+}
+
+.my-posts-container .post-stat:nth-child(2) {
+  color: var(--brand-2);
+  background: var(--brand-tint);
+  border-color: var(--brand-tint-soft);
+}
+
+/* --------------------------------------------------------------------------
+   Comments preview — chat-bubble feel
+   -------------------------------------------------------------------------- */
+.my-posts-container .comments-preview {
   margin-top: 16px;
   padding: 16px;
-  background: #f7fafc;
-  border-radius: 8px;
+  background: var(--surface-2);
+  border: 1px solid var(--line-soft);
+  border-radius: var(--r-md);
 }
 
-.comments-header {
+.my-posts-container .comments-header {
   font-weight: 700;
-  color: #2d3748;
-  font-size: 14px;
+  color: var(--ink-2);
+  font-size: 13px;
+  letter-spacing: 0.01em;
   margin-bottom: 12px;
 }
 
-.comment-preview {
-  color: #4a5568;
+.my-posts-container .comment-preview {
+  position: relative;
+  display: block;
+  color: var(--muted);
   font-size: 14px;
-  line-height: 1.6;
-  margin-bottom: 8px;
-  padding-bottom: 8px;
-  border-bottom: 1px solid #e2e8f0;
+  line-height: 1.55;
+  margin-bottom: 10px;
+  padding: 10px 14px;
+  background: var(--surface);
+  border: 1px solid var(--line-soft);
+  border-radius: var(--r-sm) var(--r-sm) var(--r-sm) var(--r-xs);
+  overflow-wrap: anywhere;
+  /* clamp long comments to keep the preview compact */
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
-.comment-preview:last-of-type {
-  border-bottom: none;
+.my-posts-container .comment-preview:last-of-type {
   margin-bottom: 0;
-  padding-bottom: 0;
 }
 
-.comment-preview strong {
-  color: #1a202c;
+.my-posts-container .comment-preview strong {
+  color: var(--brand-2);
+  font-weight: 700;
 }
 
-.more-comments {
-  color: #718096;
+.my-posts-container .more-comments {
+  color: var(--muted-2);
   font-size: 13px;
   font-style: italic;
-  margin-top: 8px;
+  margin-top: 10px;
 }
 
-.loading {
-  text-align: center;
-  padding: 48px 24px;
-  color: #718096;
-  font-size: 16px;
+/* --------------------------------------------------------------------------
+   Focus-visible (keyboard) affordances
+   -------------------------------------------------------------------------- */
+.my-posts-container .edit-btn:focus-visible,
+.my-posts-container .delete-btn:focus-visible,
+.my-posts-container .save-btn:focus-visible,
+.my-posts-container .cancel-btn:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
 }
 
+.my-posts-container .edit-form textarea:focus-visible {
+  outline: none;
+  border-color: var(--brand-1);
+  box-shadow: var(--focus-ring);
+}
+
+/* --------------------------------------------------------------------------
+   Entrance motion (gated behind reduced-motion preference)
+   -------------------------------------------------------------------------- */
+@media (prefers-reduced-motion: no-preference) {
+  .my-posts-container .my-post-card,
+  .my-posts-container .no-posts-card,
+  .my-posts-container .page-header {
+    animation: my-posts-card-in var(--t-slow) ease both;
+  }
+}
+
+@keyframes my-posts-card-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* --------------------------------------------------------------------------
+   Responsive
+   -------------------------------------------------------------------------- */
 @media (max-width: 768px) {
   .my-posts-container {
     padding: 16px;
   }
-  .my-posts-content {
-    margin-bottom: 100px;
+
+  .my-posts-container .my-posts-content {
+    /* clear the mobile bottom nav */
+    margin-bottom: calc(var(--nav-h) + 24px);
   }
 
-  .page-header,
-  .my-post-card {
+  .my-posts-container .page-header,
+  .my-posts-container .my-post-card {
     padding: 20px;
   }
 
-  .post-header {
+  .my-posts-container .page-header h1 {
+    font-size: 28px;
+  }
+
+  .my-posts-container .post-header {
     flex-direction: column;
     align-items: flex-start;
     gap: 12px;
   }
 
-  .stats {
-    grid-template-columns: 1fr;
+  /* 2-up stats instead of a wasteful single column */
+  .my-posts-container .stats {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  /* let the third tile span the full width on the 2-col grid */
+  .my-posts-container .stat-item:last-child {
+    grid-column: 1 / -1;
+  }
+
+  .my-posts-container .no-posts-card {
+    padding: 48px 24px;
+  }
+}
+
+@media (max-width: 480px) {
+  .my-posts-container .page-header h1 {
+    font-size: 24px;
+  }
+
+  .my-posts-container .stat-number {
+    font-size: 30px;
+  }
+
+  /* 16px on the textarea prevents iOS zoom-on-focus */
+  .my-posts-container .edit-form textarea {
+    font-size: 16px;
+  }
+
+  .my-posts-container .no-posts-card {
+    padding: 40px 20px;
   }
 }

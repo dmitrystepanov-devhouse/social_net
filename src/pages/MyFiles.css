@@ -1,84 +1,140 @@
+/* ============================================================
+   My Files — premium redesign
+   Every selector scoped under .my-files-container.
+   Tokens from src/index.css :root. No !important, no globals.
+   ============================================================ */
+
 .my-files-container {
-  min-height: calc(100vh - 72px);
+  min-height: calc(100vh - var(--nav-h));
   padding: 24px;
   position: relative;
+  font-family: var(--font-sans);
 }
 
-.my-files-content {
+.my-files-container .my-files-content {
   max-width: 800px;
   margin: 0 auto;
 }
 
-.page-header {
-  background: white;
-  border-radius: 16px;
+/* ---------- Loading early-return ---------- */
+/* JSX returns: .my-files-container > .loading (no .my-files-content) */
+.my-files-container > .loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  text-align: center;
+  padding: 96px 24px;
+  min-height: calc(100vh - var(--nav-h) - 48px);
+  color: var(--muted-2);
+  font-size: 15px;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+}
+
+.my-files-container > .loading::before {
+  content: '';
+  width: 38px;
+  height: 38px;
+  border-radius: var(--r-full);
+  border: 3px solid var(--brand-tint);
+  border-top-color: var(--brand-1);
+  animation: my-files-spin 0.7s linear infinite;
+}
+
+@keyframes my-files-spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ---------- Page header ---------- */
+.my-files-container .page-header {
+  background: var(--surface);
+  border-radius: var(--r-lg);
   padding: 32px;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06), 0 0 0 1px rgba(0, 0, 0, 0.04);
+  box-shadow: var(--shadow-md);
   margin-bottom: 24px;
   position: relative;
   overflow: hidden;
 }
 
-.page-header::before {
+.my-files-container .page-header::before {
   content: '';
   position: absolute;
   top: 0;
   left: 0;
   right: 0;
   height: 4px;
-  background: linear-gradient(90deg, #667eea, #764ba2);
-  border-radius: 16px 16px 0 0;
+  background: var(--brand-gradient-90);
+  border-radius: var(--r-lg) var(--r-lg) 0 0;
 }
 
-.page-header h1 {
+.my-files-container .page-header h1 {
   margin: 0 0 8px 0;
-  color: #1a202c;
+  color: var(--ink);
   font-size: 32px;
   font-weight: 700;
+  letter-spacing: -0.02em;
   display: flex;
   align-items: center;
   gap: 12px;
 }
 
-.page-header h1::before {
+/* Page-specific emoji — scoped so it does NOT collide with MyPosts (📝) */
+.my-files-container .page-header h1::before {
   content: '📁';
-  font-size: 36px;
+  font-size: 34px;
+  line-height: 1;
 }
 
-.page-description {
+.my-files-container .page-description {
   margin: 0;
-  color: #4a5568;
+  color: var(--muted);
   font-size: 15px;
-  line-height: 1.5;
+  line-height: 1.55;
 }
 
-.upload-zone {
-  background: white;
-  border-radius: 16px;
-  padding: 40px 24px;
+/* ---------- Upload zone (hero) ---------- */
+.my-files-container .upload-zone {
+  position: relative;
+  isolation: isolate;
+  background:
+    radial-gradient(120% 90% at 50% 0%, var(--brand-tint-soft) 0%, transparent 65%),
+    var(--surface);
+  border-radius: var(--r-lg);
+  padding: 44px 28px;
   margin-bottom: 24px;
-  border: 2px dashed #cbd5e0;
+  border: 2px dashed var(--line);
   text-align: center;
   cursor: pointer;
-  transition: border-color 0.2s, background 0.2s;
+  overflow: hidden;
+  transition: border-color var(--t), background-color var(--t),
+    box-shadow var(--t), transform var(--t);
 }
 
-.upload-zone:hover {
-  border-color: #667eea;
-  background: #fafbff;
+.my-files-container .upload-zone:hover {
+  border-color: var(--brand-1);
+  box-shadow: var(--shadow-md);
+  transform: translateY(-1px);
 }
 
-.upload-zone.drag-over {
-  border-color: #667eea;
-  background: #edf2f7;
+/* Armed drop state: solid brand border + tinted bg + glow ring */
+.my-files-container .upload-zone.drag-over {
+  border-style: solid;
+  border-color: var(--brand-1);
+  background:
+    radial-gradient(120% 90% at 50% 0%, var(--brand-tint) 0%, transparent 70%),
+    var(--brand-tint-soft);
+  box-shadow: var(--shadow-brand), var(--ring-brand);
+  transform: translateY(-1px);
 }
 
-.upload-zone.uploading {
+.my-files-container .upload-zone.uploading {
   pointer-events: none;
-  opacity: 0.85;
+  opacity: 0.9;
 }
 
-.upload-input {
+.my-files-container .upload-input {
   position: absolute;
   width: 0;
   height: 0;
@@ -86,189 +142,298 @@
   pointer-events: none;
 }
 
-.upload-zone-icon {
-  font-size: 48px;
-  margin-bottom: 12px;
-  opacity: 0.9;
+/* Icon sits on a circular gradient disc */
+.my-files-container .upload-zone-icon {
+  position: relative;
+  width: 84px;
+  height: 84px;
+  margin: 0 auto 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 42px;
+  line-height: 1;
+  border-radius: var(--r-full);
+  background: var(--brand-gradient);
+  box-shadow: var(--shadow-brand);
+  transition: transform var(--t-slow);
 }
 
-.upload-zone-text {
+.my-files-container .upload-zone:hover .upload-zone-icon {
+  transform: translateY(-2px) scale(1.03);
+}
+
+.my-files-container .upload-zone.drag-over .upload-zone-icon {
+  transform: scale(1.06);
+}
+
+.my-files-container .upload-zone-text {
   margin: 0 0 6px 0;
-  color: #2d3748;
+  color: var(--ink-2);
   font-size: 16px;
   font-weight: 600;
+  letter-spacing: -0.01em;
 }
 
-.upload-zone-hint {
+.my-files-container .upload-zone-hint {
   margin: 0;
-  color: #718096;
+  color: var(--muted-2);
   font-size: 14px;
 }
 
-.upload-zone-error {
-  margin: 12px 0 0 0;
-  color: #c53030;
+.my-files-container .upload-zone-error {
+  margin: 14px auto 0;
+  max-width: 460px;
+  padding: 10px 14px;
+  color: var(--danger-ink);
+  background: var(--danger-bg);
+  border: 1px solid var(--danger-line);
+  border-radius: var(--r-sm);
   font-size: 14px;
+  font-weight: 500;
+  line-height: 1.45;
 }
 
-.no-files-card {
+/* ---------- Empty state (recessed vs. the dominant upload zone) ---------- */
+.my-files-container .no-files-card {
   position: relative;
-  background: white;
-  border-radius: 16px;
+  background: var(--surface-2);
+  border-radius: var(--r-lg);
   padding: 56px 32px;
   text-align: center;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
-  border: 2px dashed #e2e8f0;
+  border: 1px dashed var(--line);
+  box-shadow: inset 0 0 0 1px var(--line-soft);
 }
 
-.no-files-card::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 4px;
-  background: linear-gradient(90deg, #667eea, #764ba2);
-  border-radius: 16px 16px 0 0;
+.my-files-container .no-files-icon {
+  position: relative;
+  width: 92px;
+  height: 92px;
+  margin: 0 auto 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 48px;
+  line-height: 1;
+  border-radius: var(--r-full);
+  background:
+    radial-gradient(circle at 50% 40%, var(--brand-tint) 0%, var(--brand-tint-soft) 70%, transparent 100%);
 }
 
-.no-files-icon {
-  font-size: 64px;
-  margin-bottom: 16px;
-  display: block;
-}
-
-.no-files-card h2 {
+.my-files-container .no-files-card h2 {
   margin: 0 0 8px 0;
-  color: #1a202c;
+  color: var(--ink);
   font-size: 22px;
   font-weight: 700;
+  letter-spacing: -0.01em;
 }
 
-.no-files-card p {
-  margin: 0;
-  color: #718096;
+.my-files-container .no-files-card p {
+  margin: 0 auto;
+  max-width: 420px;
+  color: var(--muted-2);
   font-size: 15px;
+  line-height: 1.5;
 }
 
-.files-list {
+/* ---------- Files list ---------- */
+.my-files-container .files-list {
   display: flex;
   flex-direction: column;
   gap: 12px;
 }
 
-.file-card {
-  background: white;
-  border-radius: 12px;
+.my-files-container .file-card {
+  position: relative;
+  background: var(--surface);
+  border-radius: var(--r-md);
   padding: 16px 20px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05), 0 0 0 1px rgba(0, 0, 0, 0.04);
+  box-shadow: var(--shadow-sm), var(--ring);
   display: flex;
   align-items: center;
   gap: 16px;
-  transition: box-shadow 0.2s;
+  transition: transform var(--t), box-shadow var(--t);
 }
 
-.file-card:hover {
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(102, 126, 234, 0.15);
+@media (prefers-reduced-motion: no-preference) {
+  .my-files-container .file-card {
+    animation: my-files-card-in 0.32s ease both;
+  }
 }
 
-.file-icon {
-  font-size: 32px;
+.my-files-container .file-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg), var(--ring-brand);
+}
+
+@keyframes my-files-card-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.my-files-container .file-icon {
+  font-size: 28px;
+  line-height: 1;
   flex-shrink: 0;
   width: 48px;
   height: 48px;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #f7fafc;
-  border-radius: 12px;
+  background: var(--brand-tint-soft);
+  border-radius: var(--r-md);
+  box-shadow: inset 0 0 0 1px var(--line-soft);
 }
 
-.file-info {
+.my-files-container .file-info {
   flex: 1;
   min-width: 0;
 }
 
-.file-name {
+.my-files-container .file-name {
   font-weight: 600;
-  color: #1a202c;
+  color: var(--ink);
   font-size: 15px;
+  letter-spacing: -0.01em;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
-.file-meta {
+.my-files-container .file-meta {
   font-size: 13px;
-  color: #718096;
-  margin-top: 2px;
+  color: var(--muted-2);
+  margin-top: 3px;
+  font-variant-numeric: tabular-nums;
 }
 
-.file-actions {
+.my-files-container .file-actions {
   display: flex;
   align-items: center;
   gap: 8px;
   flex-shrink: 0;
 }
 
-.btn-download {
+/* Primary action — gradient pill */
+.my-files-container .btn-download {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
   padding: 8px 16px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
+  background: var(--brand-gradient);
+  color: #fff;
   border: none;
-  border-radius: 8px;
+  border-radius: var(--r-full);
+  font-family: inherit;
   font-size: 14px;
   font-weight: 600;
+  line-height: 1.2;
   cursor: pointer;
-  transition: transform 0.2s, box-shadow 0.2s;
+  white-space: nowrap;
+  transition: transform var(--t), box-shadow var(--t);
 }
 
-.btn-download:hover {
+.my-files-container .btn-download:hover {
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+  box-shadow: var(--shadow-brand);
 }
 
-.btn-delete {
-  padding: 8px 12px;
-  background: #fed7d7;
-  color: #c53030;
-  border: none;
-  border-radius: 8px;
+.my-files-container .btn-download:active {
+  transform: translateY(0);
+}
+
+.my-files-container .btn-download:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+/* Destructive — soft at rest, equal-weight pill, fills to solid on hover */
+.my-files-container .btn-delete {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 14px;
+  background: var(--danger-bg);
+  color: var(--danger-d);
+  border: 1px solid var(--danger-line);
+  border-radius: var(--r-full);
+  font-family: inherit;
   font-size: 16px;
+  line-height: 1.2;
   cursor: pointer;
-  transition: background 0.2s, transform 0.2s;
+  transition: background-color var(--t), color var(--t),
+    border-color var(--t), box-shadow var(--t), transform var(--t);
 }
 
-.btn-delete:hover {
-  background: #fc8181;
-  transform: scale(1.05);
+.my-files-container .btn-delete:hover {
+  background: var(--danger);
+  border-color: var(--danger);
+  color: #fff;
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-danger);
 }
 
-.loading {
-  text-align: center;
-  padding: 48px 24px;
-  color: #718096;
-  font-size: 16px;
+.my-files-container .btn-delete:active {
+  transform: translateY(0);
 }
 
+.my-files-container .btn-delete:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+/* ---------- Responsive ---------- */
 @media (max-width: 768px) {
   .my-files-container {
     padding: 16px;
   }
 
-  .page-header {
+  .my-files-container .page-header {
     padding: 24px;
   }
 
-  .file-card {
+  .my-files-container .page-header h1 {
+    font-size: 27px;
+  }
+
+  .my-files-container .page-header h1::before {
+    font-size: 29px;
+  }
+
+  .my-files-container .upload-zone {
+    padding: 32px 18px;
+  }
+
+  .my-files-container .no-files-card {
+    padding: 44px 24px;
+  }
+
+  .my-files-container .file-card {
     flex-wrap: wrap;
   }
 
-  .file-actions {
+  .my-files-container .file-actions {
     width: 100%;
     justify-content: flex-end;
     margin-top: 8px;
     padding-top: 12px;
-    border-top: 1px solid #e2e8f0;
+    border-top: 1px solid var(--line);
+  }
+}
+
+@media (max-width: 480px) {
+  .my-files-container .upload-zone {
+    padding: 28px 16px;
+  }
+
+  .my-files-container .upload-zone-icon {
+    width: 72px;
+    height: 72px;
+    font-size: 36px;
+  }
+
+  .my-files-container .btn-download {
+    flex: 1;
   }
 }
