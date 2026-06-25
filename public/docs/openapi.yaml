@@ -1,33 +1,192 @@
 openapi: 3.0.3
 info:
   title: Social Network API
-  version: 1.0.0
+  version: 2.0.0
   description: |
-    REST API социальной сети — серверный прототип на **FastAPI + SQLAlchemy (SQLite)**
-    из файла `main.py`. Реализует операции с постами и лайками (аналог вызовов
-    Supabase из фронтенда).
+    Полный REST API социальной сети — авторизация, профили, посты, комментарии,
+    лайки, друзья и личные файлы.
 
-    **Как запустить сервер для интерактивных запросов «Try it out»:**
+    **Как это работает в проекте:** на задеплоенном сайте все операции
+    выполняются через **Supabase** (Auth + PostgREST + Storage), а файл
+    `main.py` — серверный прототип на FastAPI, реализующий часть эндпоинтов
+    (посты и лайки) для локального запуска:
     ```bash
     pip install fastapi "uvicorn[standard]" sqlalchemy
-    uvicorn main:app --reload
+    uvicorn main:app --reload   # http://localhost:8000
     ```
-    По умолчанию сервер поднимется на `http://localhost:8000`.
+    Этот документ описывает **полную модель API приложения** по всем разделам.
+    Защищённые эндпоинты требуют JWT пользователя (заголовок `Authorization: Bearer <token>`),
+    доступ к данным ограничен RLS-политиками Supabase.
 servers:
   - url: http://localhost:8000
     description: Локальный FastAPI-сервер (uvicorn main:app --reload)
 tags:
+  - name: Auth
+    description: Регистрация, вход и выход
+  - name: Profiles
+    description: Профили пользователей
   - name: Posts
     description: Лента и управление постами
-  - name: Interactions
-    description: Лайки и взаимодействия
+  - name: Comments
+    description: Комментарии к постам
+  - name: Likes
+    description: Лайки постов
+  - name: Friends
+    description: Друзья и заявки в друзья
+  - name: Files
+    description: Личное файловое хранилище
+
+security:
+  - bearerAuth: []
+
 paths:
+  # ───────────────────────── Auth ─────────────────────────
+  /api/auth/register:
+    post:
+      tags: [Auth]
+      summary: Регистрация
+      description: Создаёт пользователя. Профиль создаётся автоматически триггером `handle_new_user` из `username` и `full_name`.
+      operationId: register
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterRequest'
+      responses:
+        '200':
+          description: Пользователь создан (с сессией при включённом авто-подтверждении)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '400':
+          description: Некорректные данные (например, email уже занят)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPError'
+  /api/auth/login:
+    post:
+      tags: [Auth]
+      summary: Вход
+      description: Аутентификация по email и паролю. Возвращает access-token (JWT).
+      operationId: login
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: Успешный вход
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '400':
+          description: Неверный email или пароль
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPError'
+  /api/auth/logout:
+    post:
+      tags: [Auth]
+      summary: Выход
+      description: Завершает текущую сессию пользователя.
+      operationId: logout
+      responses:
+        '204':
+          description: Сессия завершена
+
+  # ─────────────────────── Profiles ───────────────────────
+  /api/profiles:
+    get:
+      tags: [Profiles]
+      summary: Список профилей
+      description: Все профили (используется на странице «Друзья» для поиска людей).
+      operationId: listProfiles
+      parameters:
+        - name: search
+          in: query
+          required: false
+          description: Фильтр по имени или username
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Список профилей
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Profile'
+  /api/profiles/{id}:
+    get:
+      tags: [Profiles]
+      summary: Профиль по ID
+      operationId: getProfile
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200':
+          description: Профиль
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Profile'
+        '404':
+          description: Профиль не найден
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPError'
+    patch:
+      tags: [Profiles]
+      summary: Обновить свой профиль
+      description: Редактирование собственного профиля (имя, username, био, аватар).
+      operationId: updateProfile
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProfileUpdate'
+      responses:
+        '200':
+          description: Обновлённый профиль
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Profile'
+
+  # ───────────────────────── Posts ────────────────────────
   /api/posts:
     get:
       tags: [Posts]
-      summary: Получить ленту постов
-      description: Аналог вызова `supabase.from('posts').select(...)` из Feed.jsx. Возвращает посты по убыванию даты создания.
+      summary: Лента постов
+      description: Все посты с автором, лайками и комментариями (по убыванию даты). Параметр `user_id` ограничивает выборку постами одного автора («Мои посты»).
       operationId: getFeed
+      security: []
+      parameters:
+        - name: user_id
+          in: query
+          required: false
+          description: Только посты этого автора
+          schema: { type: string, format: uuid }
       responses:
         '200':
           description: Список постов
@@ -36,19 +195,17 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/PostResponse'
+                  $ref: '#/components/schemas/PostWithRelations'
     post:
       tags: [Posts]
       summary: Создать пост
-      description: Создание поста. В будущем `user_id` будет браться из JWT-токена.
       operationId: createPost
       parameters:
         - name: user_id
           in: query
           required: true
-          description: ID автора (профиля)
-          schema:
-            type: string
+          description: ID автора (в боевом API берётся из JWT)
+          schema: { type: string, format: uuid }
       requestBody:
         required: true
         content:
@@ -61,25 +218,45 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/PostResponse'
+                $ref: '#/components/schemas/PostWithRelations'
   /api/posts/{post_id}:
+    patch:
+      tags: [Posts]
+      summary: Редактировать пост
+      description: Изменение текста собственного поста.
+      operationId: updatePost
+      parameters:
+        - name: post_id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PostUpdate'
+      responses:
+        '200':
+          description: Обновлённый пост
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Post'
     delete:
       tags: [Posts]
       summary: Удалить пост
-      description: Удалить можно только собственный пост (проверка по `user_id`).
+      description: Удалить можно только собственный пост.
       operationId: deletePost
       parameters:
         - name: post_id
           in: path
           required: true
-          schema:
-            type: string
+          schema: { type: string, format: uuid }
         - name: user_id
           in: query
           required: true
-          description: ID автора
-          schema:
-            type: string
+          schema: { type: string, format: uuid }
       responses:
         '200':
           description: Пост удалён
@@ -93,9 +270,73 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/HTTPError'
+
+  # ─────────────────────── Comments ───────────────────────
+  /api/posts/{post_id}/comments:
+    get:
+      tags: [Comments]
+      summary: Комментарии поста
+      operationId: listComments
+      security: []
+      parameters:
+        - name: post_id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200':
+          description: Список комментариев
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Comment'
+    post:
+      tags: [Comments]
+      summary: Добавить комментарий
+      operationId: addComment
+      parameters:
+        - name: post_id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CommentCreate'
+      responses:
+        '200':
+          description: Созданный комментарий
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Comment'
+  /api/comments/{comment_id}:
+    delete:
+      tags: [Comments]
+      summary: Удалить комментарий
+      description: Удалить можно только свой комментарий.
+      operationId: deleteComment
+      parameters:
+        - name: comment_id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200':
+          description: Комментарий удалён
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResponse'
+
+  # ───────────────────────── Likes ────────────────────────
   /api/posts/{post_id}/like:
     post:
-      tags: [Interactions]
+      tags: [Likes]
       summary: Поставить или убрать лайк
       description: Переключает лайк пользователя на посте (toggle).
       operationId: toggleLike
@@ -103,14 +344,11 @@ paths:
         - name: post_id
           in: path
           required: true
-          schema:
-            type: string
+          schema: { type: string, format: uuid }
         - name: user_id
           in: query
           required: true
-          description: ID пользователя
-          schema:
-            type: string
+          schema: { type: string, format: uuid }
       responses:
         '200':
           description: Результат переключения лайка
@@ -118,62 +356,324 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/LikeToggleResponse'
+
+  # ──────────────────────── Friends ───────────────────────
+  /api/friendships:
+    get:
+      tags: [Friends]
+      summary: Мои друзья и заявки
+      description: Все связи дружбы текущего пользователя (исходящие и входящие).
+      operationId: listFriendships
+      responses:
+        '200':
+          description: Список связей дружбы
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Friendship'
+    post:
+      tags: [Friends]
+      summary: Отправить заявку в друзья
+      operationId: sendFriendRequest
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FriendshipCreate'
+      responses:
+        '200':
+          description: Заявка создана (status = pending)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Friendship'
+  /api/friendships/{id}:
+    patch:
+      tags: [Friends]
+      summary: Принять/отклонить заявку
+      description: Принимающая сторона меняет статус заявки.
+      operationId: updateFriendship
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FriendshipUpdate'
+      responses:
+        '200':
+          description: Обновлённая связь дружбы
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Friendship'
+    delete:
+      tags: [Friends]
+      summary: Удалить из друзей / отклонить заявку
+      operationId: deleteFriendship
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200':
+          description: Связь удалена
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResponse'
+
+  # ───────────────────────── Files ────────────────────────
+  /api/files:
+    get:
+      tags: [Files]
+      summary: Мои файлы
+      description: Список файлов текущего пользователя (только владелец видит свои файлы).
+      operationId: listFiles
+      responses:
+        '200':
+          description: Список файлов
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/UserFile'
+    post:
+      tags: [Files]
+      summary: Загрузить файл
+      description: |
+        Загрузка в приватный bucket `private-files` + запись метаданных.
+        Разрешены DOC, DOCX, PDF, XLS, XLSX, PPT, PPTX, ZIP размером до 100 МБ.
+      operationId: uploadFile
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [file]
+              properties:
+                file:
+                  type: string
+                  format: binary
+      responses:
+        '200':
+          description: Метаданные загруженного файла
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserFile'
+        '400':
+          description: Недопустимый тип или размер файла
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPError'
+  /api/files/{id}:
+    delete:
+      tags: [Files]
+      summary: Удалить файл
+      description: Удаляет файл из хранилища и его метаданные.
+      operationId: deleteFile
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200':
+          description: Файл удалён
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResponse'
+  /api/files/{id}/download:
+    get:
+      tags: [Files]
+      summary: Ссылка на скачивание
+      description: Возвращает временную подписанную ссылку (signed URL) на файл, действительную 60 секунд.
+      operationId: downloadFile
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200':
+          description: Подписанная ссылка
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SignedUrlResponse'
+
 components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: "JWT пользователя из Supabase Auth (заголовок `Authorization: Bearer <access_token>`)."
   schemas:
-    ProfileResponse:
+    RegisterRequest:
+      type: object
+      required: [email, password, username, full_name]
+      properties:
+        email: { type: string, format: email, example: "ivan@example.com" }
+        password: { type: string, format: password, minLength: 6, example: "secret123" }
+        username: { type: string, example: "ivan" }
+        full_name: { type: string, example: "Иван Иванов" }
+    LoginRequest:
+      type: object
+      required: [email, password]
+      properties:
+        email: { type: string, format: email, example: "ivan@example.com" }
+        password: { type: string, format: password, example: "secret123" }
+    AuthUser:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        email: { type: string, format: email }
+    AuthResponse:
+      type: object
+      properties:
+        access_token: { type: string, description: "JWT", example: "eyJhbGciOiJ..." }
+        token_type: { type: string, example: "bearer" }
+        user: { $ref: '#/components/schemas/AuthUser' }
+    Profile:
       type: object
       required: [id, username, full_name, created_at]
       properties:
-        id: { type: string, example: "a1b2c3d4-..." }
+        id: { type: string, format: uuid }
         username: { type: string, example: "ivan" }
         full_name: { type: string, example: "Иван Иванов" }
         avatar_url: { type: string, default: "" }
         bio: { type: string, default: "" }
         created_at: { type: string, format: date-time }
+        updated_at: { type: string, format: date-time }
+    ProfileUpdate:
+      type: object
+      properties:
+        username: { type: string }
+        full_name: { type: string }
+        bio: { type: string }
+        avatar_url: { type: string }
     PostCreate:
       type: object
       required: [content]
       properties:
         content: { type: string, example: "Мой первый пост!" }
         image_url: { type: string, default: "" }
-    CommentResponse:
+    PostUpdate:
       type: object
-      required: [id, content, created_at, author]
+      required: [content]
       properties:
-        id: { type: string }
+        content: { type: string, example: "Обновлённый текст поста" }
+    Post:
+      type: object
+      required: [id, user_id, content, created_at]
+      properties:
+        id: { type: string, format: uuid }
+        user_id: { type: string, format: uuid }
+        content: { type: string }
+        image_url: { type: string, default: "" }
+        created_at: { type: string, format: date-time }
+        updated_at: { type: string, format: date-time }
+    PostWithRelations:
+      allOf:
+        - $ref: '#/components/schemas/Post'
+        - type: object
+          properties:
+            profiles: { $ref: '#/components/schemas/Profile' }
+            likes:
+              type: array
+              items: { $ref: '#/components/schemas/Like' }
+            comments:
+              type: array
+              items: { $ref: '#/components/schemas/Comment' }
+    CommentCreate:
+      type: object
+      required: [content]
+      properties:
+        content: { type: string, example: "Отличный пост!" }
+    Comment:
+      type: object
+      required: [id, content, created_at]
+      properties:
+        id: { type: string, format: uuid }
+        post_id: { type: string, format: uuid }
+        user_id: { type: string, format: uuid }
         content: { type: string }
         created_at: { type: string, format: date-time }
-        author: { $ref: '#/components/schemas/ProfileResponse' }
-    LikeResponse:
+        profiles: { $ref: '#/components/schemas/Profile' }
+    Like:
       type: object
       required: [id, user_id]
       properties:
-        id: { type: string }
-        user_id: { type: string }
-    PostResponse:
-      type: object
-      required: [id, content, created_at, author]
-      properties:
-        id: { type: string }
-        content: { type: string }
+        id: { type: string, format: uuid }
+        post_id: { type: string, format: uuid }
+        user_id: { type: string, format: uuid }
         created_at: { type: string, format: date-time }
-        author: { $ref: '#/components/schemas/ProfileResponse' }
-        comments:
-          type: array
-          items: { $ref: '#/components/schemas/CommentResponse' }
-        likes:
-          type: array
-          items: { $ref: '#/components/schemas/LikeResponse' }
-    MessageResponse:
-      type: object
-      properties:
-        message: { type: string, example: "Пост удален" }
     LikeToggleResponse:
       type: object
       properties:
         message: { type: string, example: "Лайк поставлен" }
         liked: { type: boolean, example: true }
+    Friendship:
+      type: object
+      required: [id, user_id, friend_id, status]
+      properties:
+        id: { type: string, format: uuid }
+        user_id: { type: string, format: uuid, description: "Кто отправил заявку" }
+        friend_id: { type: string, format: uuid, description: "Кому отправлена заявка" }
+        status:
+          type: string
+          enum: [pending, accepted, rejected]
+          example: pending
+        created_at: { type: string, format: date-time }
+        updated_at: { type: string, format: date-time }
+    FriendshipCreate:
+      type: object
+      required: [friend_id]
+      properties:
+        friend_id: { type: string, format: uuid }
+    FriendshipUpdate:
+      type: object
+      required: [status]
+      properties:
+        status:
+          type: string
+          enum: [accepted, rejected]
+          example: accepted
+    UserFile:
+      type: object
+      required: [id, file_name, storage_path, file_size]
+      properties:
+        id: { type: string, format: uuid }
+        user_id: { type: string, format: uuid }
+        file_name: { type: string, example: "Диплом.docx" }
+        storage_path: { type: string, example: "a1b2.../c3d4....docx" }
+        file_size: { type: integer, format: int64, description: "Размер в байтах (макс. 100 МБ)", example: 254000 }
+        mime_type: { type: string, nullable: true, example: "application/pdf" }
+        created_at: { type: string, format: date-time }
+    SignedUrlResponse:
+      type: object
+      properties:
+        signedUrl: { type: string, format: uri, example: "https://...supabase.co/storage/v1/object/sign/..." }
+        expiresIn: { type: integer, example: 60 }
+    MessageResponse:
+      type: object
+      properties:
+        message: { type: string, example: "Готово" }
     HTTPError:
       type: object
       properties:
-        detail: { type: string, example: "Пост не найден или нет прав на удаление" }
+        detail: { type: string, example: "Ресурс не найден или нет прав" }
