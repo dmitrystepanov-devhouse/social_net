@@ -3,7 +3,10 @@ import { supabase, STORAGE_BUCKET_FILES } from '../lib/supabase'
 import { useAuth } from '../contexts/AuthContext'
 import './MyFiles.css'
 
-const MAX_SIZE_BYTES = 100 * 1024 * 1024 // 100 MB
+const MAX_SIZE_BYTES = 100 * 1024 * 1024 // 100 MB per file
+// Bounded so a single user can't exhaust the shared free-tier storage and the
+// unpaginated file list stays light. See supabase/migrations for the DB-level guard.
+const MAX_FILES_PER_USER = 30
 const ALLOWED_EXTENSIONS = [
   '.doc', '.docx',
   '.pdf',
@@ -82,6 +85,10 @@ export default function MyFiles() {
   }
 
   const uploadFile = async (file) => {
+    if (files.length >= MAX_FILES_PER_USER) {
+      setUploadError(`Достигнут лимит: не более ${MAX_FILES_PER_USER} файлов. Удалите ненужные, чтобы загрузить новые.`)
+      return
+    }
     if (!isAllowedFile(file)) {
       setUploadError(
         'Можно загружать только Word, PDF, Excel, PowerPoint или ZIP до 100 МБ.'
@@ -126,23 +133,29 @@ export default function MyFiles() {
     }
   }
 
-  const handleInputChange = (e) => {
-    const chosen = e.target.files
-    if (!chosen?.length) return
-    for (let i = 0; i < chosen.length; i++) {
-      uploadFile(chosen[i])
+  const enqueueUploads = (fileList) => {
+    setUploadError('')
+    const remaining = MAX_FILES_PER_USER - files.length
+    if (remaining <= 0) {
+      setUploadError(`Достигнут лимит: не более ${MAX_FILES_PER_USER} файлов. Удалите ненужные, чтобы загрузить новые.`)
+      return
     }
+    const list = Array.from(fileList)
+    if (list.length > remaining) {
+      setUploadError(`Можно загрузить ещё ${remaining}: лимит ${MAX_FILES_PER_USER} файлов, лишние пропущены.`)
+    }
+    list.slice(0, remaining).forEach((f) => uploadFile(f))
+  }
+
+  const handleInputChange = (e) => {
+    if (e.target.files?.length) enqueueUploads(e.target.files)
     e.target.value = ''
   }
 
   const handleDrop = (e) => {
     e.preventDefault()
     setDragOver(false)
-    const items = e.dataTransfer.files
-    if (!items?.length) return
-    for (let i = 0; i < items.length; i++) {
-      uploadFile(items[i])
-    }
+    if (e.dataTransfer.files?.length) enqueueUploads(e.dataTransfer.files)
   }
 
   const handleDragOver = (e) => {
@@ -242,7 +255,7 @@ export default function MyFiles() {
           <p className="upload-zone-text">
             {uploading ? 'Загрузка...' : 'Перетащите файлы сюда или нажмите для выбора'}
           </p>
-          <p className="upload-zone-hint">DOC, DOCX, PDF, XLS, XLSX, PPT, PPTX, ZIP — до 100 МБ</p>
+          <p className="upload-zone-hint">DOC, DOCX, PDF, XLS, XLSX, PPT, PPTX, ZIP — до 100 МБ · {files.length}/{MAX_FILES_PER_USER}</p>
           {uploadError && <p className="upload-zone-error">{uploadError}</p>}
         </div>
 
