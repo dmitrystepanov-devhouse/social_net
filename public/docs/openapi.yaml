@@ -1,0 +1,179 @@
+openapi: 3.0.3
+info:
+  title: Social Network API
+  version: 1.0.0
+  description: |
+    REST API социальной сети — серверный прототип на **FastAPI + SQLAlchemy (SQLite)**
+    из файла `main.py`. Реализует операции с постами и лайками (аналог вызовов
+    Supabase из фронтенда).
+
+    **Как запустить сервер для интерактивных запросов «Try it out»:**
+    ```bash
+    pip install fastapi "uvicorn[standard]" sqlalchemy
+    uvicorn main:app --reload
+    ```
+    По умолчанию сервер поднимется на `http://localhost:8000`.
+servers:
+  - url: http://localhost:8000
+    description: Локальный FastAPI-сервер (uvicorn main:app --reload)
+tags:
+  - name: Posts
+    description: Лента и управление постами
+  - name: Interactions
+    description: Лайки и взаимодействия
+paths:
+  /api/posts:
+    get:
+      tags: [Posts]
+      summary: Получить ленту постов
+      description: Аналог вызова `supabase.from('posts').select(...)` из Feed.jsx. Возвращает посты по убыванию даты создания.
+      operationId: getFeed
+      responses:
+        '200':
+          description: Список постов
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PostResponse'
+    post:
+      tags: [Posts]
+      summary: Создать пост
+      description: Создание поста. В будущем `user_id` будет браться из JWT-токена.
+      operationId: createPost
+      parameters:
+        - name: user_id
+          in: query
+          required: true
+          description: ID автора (профиля)
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PostCreate'
+      responses:
+        '200':
+          description: Созданный пост
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PostResponse'
+  /api/posts/{post_id}:
+    delete:
+      tags: [Posts]
+      summary: Удалить пост
+      description: Удалить можно только собственный пост (проверка по `user_id`).
+      operationId: deletePost
+      parameters:
+        - name: post_id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: user_id
+          in: query
+          required: true
+          description: ID автора
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Пост удалён
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResponse'
+        '404':
+          description: Пост не найден или нет прав на удаление
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPError'
+  /api/posts/{post_id}/like:
+    post:
+      tags: [Interactions]
+      summary: Поставить или убрать лайк
+      description: Переключает лайк пользователя на посте (toggle).
+      operationId: toggleLike
+      parameters:
+        - name: post_id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: user_id
+          in: query
+          required: true
+          description: ID пользователя
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Результат переключения лайка
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LikeToggleResponse'
+components:
+  schemas:
+    ProfileResponse:
+      type: object
+      required: [id, username, full_name, created_at]
+      properties:
+        id: { type: string, example: "a1b2c3d4-..." }
+        username: { type: string, example: "ivan" }
+        full_name: { type: string, example: "Иван Иванов" }
+        avatar_url: { type: string, default: "" }
+        bio: { type: string, default: "" }
+        created_at: { type: string, format: date-time }
+    PostCreate:
+      type: object
+      required: [content]
+      properties:
+        content: { type: string, example: "Мой первый пост!" }
+        image_url: { type: string, default: "" }
+    CommentResponse:
+      type: object
+      required: [id, content, created_at, author]
+      properties:
+        id: { type: string }
+        content: { type: string }
+        created_at: { type: string, format: date-time }
+        author: { $ref: '#/components/schemas/ProfileResponse' }
+    LikeResponse:
+      type: object
+      required: [id, user_id]
+      properties:
+        id: { type: string }
+        user_id: { type: string }
+    PostResponse:
+      type: object
+      required: [id, content, created_at, author]
+      properties:
+        id: { type: string }
+        content: { type: string }
+        created_at: { type: string, format: date-time }
+        author: { $ref: '#/components/schemas/ProfileResponse' }
+        comments:
+          type: array
+          items: { $ref: '#/components/schemas/CommentResponse' }
+        likes:
+          type: array
+          items: { $ref: '#/components/schemas/LikeResponse' }
+    MessageResponse:
+      type: object
+      properties:
+        message: { type: string, example: "Пост удален" }
+    LikeToggleResponse:
+      type: object
+      properties:
+        message: { type: string, example: "Лайк поставлен" }
+        liked: { type: boolean, example: true }
+    HTTPError:
+      type: object
+      properties:
+        detail: { type: string, example: "Пост не найден или нет прав на удаление" }
