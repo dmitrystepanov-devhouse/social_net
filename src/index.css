@@ -96,6 +96,10 @@
 html {
   scroll-behavior: smooth;
   -webkit-text-size-adjust: 100%;
+  /* Themed overscroll/bounce area: the rubber-band region shows the root
+     (canvas) background. Brand purple keeps it seamless with the navbar at the
+     top instead of flashing the light page background ("white") on overscroll. */
+  background-color: var(--brand-1);
 }
 
 body {
