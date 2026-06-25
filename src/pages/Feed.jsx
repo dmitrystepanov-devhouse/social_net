@@ -1,8 +1,15 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { Link } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../contexts/AuthContext'
 import './Feed.css'
+
+const TIPS = [
+  'Делитесь мыслями — друзья это ценят.',
+  'Добавьте фото или ссылку в следующий пост.',
+  'Отвечайте на комментарии — так интереснее.',
+  'Загляните в «Друзья» и найдите новых людей.',
+]
 
 export default function Feed() {
   const [posts, setPosts] = useState([])
@@ -11,6 +18,8 @@ export default function Feed() {
   const [commentTexts, setCommentTexts] = useState({})
   const [showComments, setShowComments] = useState({})
   const { user, profile } = useAuth()
+  // Выбираем подсказку один раз при загрузке страницы (стабильно между ре-рендерами/вводом текста).
+  const randomTip = useMemo(() => TIPS[Math.floor(Math.random() * TIPS.length)], [])
 
   useEffect(() => {
     loadPosts()
@@ -123,14 +132,6 @@ export default function Feed() {
       </div>
     )
   }
-
-  const tips = [
-    'Делитесь мыслями — друзья это ценят.',
-    'Добавьте фото или ссылку в следующий пост.',
-    'Отвечайте на комментарии — так интереснее.',
-    'Загляните в «Друзья» и найдите новых людей.',
-  ]
-  const randomTip = tips[Math.floor(Math.random() * tips.length)]
 
   return (
     <div className="feed-container">

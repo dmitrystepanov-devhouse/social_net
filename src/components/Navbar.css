@@ -81,8 +81,8 @@
   gap: 12px;
 }
 
-.user-name {
-  color: white !important;
+.navbar-user .user-name {
+  color: white;
   font-weight: 600;
   font-size: 14px;
 }
@@ -131,7 +131,7 @@
     font-size: 20px;
   }
 
-  .user-name {
+  .navbar-user .user-name {
     display: none;
   }
   .navbar-logo {
