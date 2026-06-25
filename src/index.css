@@ -96,9 +96,12 @@
 html {
   scroll-behavior: smooth;
   -webkit-text-size-adjust: 100%;
-  /* Themed overscroll/bounce area: the rubber-band region shows the root
-     (canvas) background. Brand purple keeps it seamless with the navbar at the
-     top instead of flashing the light page background ("white") on overscroll. */
+  /* No rubber-band overscroll: the page stops firmly at top/bottom, so the
+     bounce never flashes a colored strip (white or brand) at either edge. */
+  overscroll-behavior: none;
+  /* Fallback for engines that ignore overscroll-behavior: if a bounce still
+     happens, the canvas shows brand purple (seamless with the navbar) — never
+     bare white. */
   background-color: var(--brand-1);
 }
 
@@ -115,6 +118,7 @@ body {
   background-attachment: fixed;
   color: var(--ink);
   overflow-wrap: break-word;
+  overscroll-behavior: none;
 }
 
 h1, h2, h3, h4, h5, h6 {
